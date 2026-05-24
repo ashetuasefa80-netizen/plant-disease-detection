@@ -298,12 +298,13 @@ with st.spinner("Loading AI model..."):
     predictor, load_error = load_model()
 
 if load_error == "tensorflow_missing":
+    import sys as _sys
+    _pyver = f"{_sys.version_info.major}.{_sys.version_info.minor}"
     st.warning(
-        "⚠️ **TensorFlow not installed.** Running in Demo Mode.\n\n"
-        "To enable real predictions, open a terminal and run:\n"
-        "```\npy -3.11 -m pip install tensorflow==2.13.0\n```\n"
-        "Then restart the app with: `py -3.11 -m streamlit run app.py`\n\n"
-        "*(TensorFlow requires Python 3.11 — your current Python 3.14 is not supported)*"
+        f"⚠️ **TensorFlow not available in this Python environment (Python {_pyver}).** Running in Demo Mode.\n\n"
+        "TensorFlow requires **Python 3.11**. Make sure you launch the app with:\n"
+        "```\npy -3.11 -m streamlit run app.py\n```\n"
+        "Or simply double-click **`run_app.bat`** — it automatically uses Python 3.11."
     )
     demo_mode = True
 elif load_error == "model_missing":
