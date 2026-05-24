@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+env/
+.env
+
+# Large model file (too big for GitHub free tier)
+model/plant_disease_cnn.h5
+
+# Dataset (too large)
+dataset/
+
+# Training outputs
+model/training_history.png
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
