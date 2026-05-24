@@ -225,10 +225,10 @@ def load_model():
         return get_predictor(), None
     except ImportError:
         return None, "tensorflow_missing"
-    except FileNotFoundError:
-        return None, "model_missing"
+    except FileNotFoundError as e:
+        return None, f"model_missing::{e}"
     except Exception as e:
-        return None, str(e)
+        return None, f"error::{type(e).__name__}: {e}"
 
 # ── SIDEBAR ──────────────────────────────────────────────────────────
 with st.sidebar:
@@ -301,8 +301,11 @@ with st.spinner("Loading AI model..."):
 if load_error == "tensorflow_missing":
     st.info("🧪 **Running in Demo Mode** — TensorFlow is not available in this environment. Predictions are simulated.")
     demo_mode = True
-elif load_error == "model_missing":
-    st.info("🧪 **Running in Demo Mode** — model not trained yet. Predictions are simulated.")
+elif load_error and load_error.startswith("model_missing::"):
+    st.warning(f"⚠️ **Model file not found:** `{load_error[15:]}`")
+    demo_mode = True
+elif load_error and load_error.startswith("error::"):
+    st.warning(f"⚠️ **Model load error:** `{load_error[7:]}`")
     demo_mode = True
 elif load_error:
     st.info(f"🧪 **Running in Demo Mode** — {load_error}")
