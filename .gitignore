@@ -13,8 +13,8 @@ venv/
 env/
 .env
 
-# Large model file (too big for GitHub free tier)
-model/plant_disease_cnn.h5
+# Model file tracked via Git LFS
+# model/plant_disease_cnn.h5
 
 # Dataset (too large)
 dataset/
