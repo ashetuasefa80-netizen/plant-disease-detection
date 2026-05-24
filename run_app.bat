@@ -5,19 +5,12 @@ echo   Madda Walabu University | Morketa Negash
 echo ============================================================
 echo.
 
-REM Activate virtual environment if it exists
-if exist venv\Scripts\activate.bat (
-    call venv\Scripts\activate.bat
-    echo [OK] Virtual environment activated.
-    goto :run
-)
-
-REM Try Python 3.11 first (required for TensorFlow)
+REM Always use Python 3.11 — required for TensorFlow support
 where py >nul 2>&1
 if %errorlevel%==0 (
     py -3.11 --version >nul 2>&1
     if %errorlevel%==0 (
-        echo [OK] Using Python 3.11
+        echo [OK] Using Python 3.11 (TensorFlow compatible)
         echo Opening browser at http://localhost:8501
         echo Press Ctrl+C to stop the server.
         echo.
@@ -27,7 +20,15 @@ if %errorlevel%==0 (
     )
 )
 
-:run
+REM Fallback: activate virtual environment if it exists
+if exist venv\Scripts\activate.bat (
+    call venv\Scripts\activate.bat
+    echo [OK] Virtual environment activated.
+) else (
+    echo [WARN] Python 3.11 not found via py launcher. Trying default python...
+    echo        TensorFlow may not be available if default Python is not 3.11.
+)
+
 echo Opening browser at http://localhost:8501
 echo Press Ctrl+C to stop the server.
 echo.
