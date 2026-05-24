@@ -338,11 +338,10 @@ with tab_detect:
         st.markdown("<p style='color:#555;font-size:0.92rem;margin-bottom:1rem;'>Take a clear photo of a plant leaf and upload it below.</p>", unsafe_allow_html=True)
 
         uploaded = st.file_uploader("", type=["jpg","jpeg","png"], label_visibility="collapsed")
-        image = None
-        analyze_btn = False
 
         if uploaded:
             image = Image.open(uploaded)
+            st.session_state["uploaded_image"] = image
             st.image(image, caption="Uploaded Image", use_column_width=True)
             c1, c2, c3 = st.columns(3)
             c1.metric("Width",  f"{image.width}px")
@@ -351,6 +350,8 @@ with tab_detect:
             st.markdown("<br>", unsafe_allow_html=True)
             analyze_btn = st.button("🔬 Analyze Disease", type="primary", use_container_width=True)
         else:
+            st.session_state["uploaded_image"] = None
+            analyze_btn = False
             st.markdown("""
 <div class="upload-zone">
   <div style="font-size:3.5rem">🍃</div>
@@ -370,7 +371,8 @@ with tab_detect:
 - 📐 Shoot from directly above for best angle
             """)
 
-    # ── Recent history (centered below upload) ───────────────────
+    # pull image back out for the results section below
+    image = st.session_state.get("uploaded_image", None)
     if st.session_state.history:
         _, hist_col, _ = st.columns([1, 2, 1])
         with hist_col:
