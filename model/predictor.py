@@ -10,15 +10,22 @@ from PIL import Image
 import tensorflow as tf
 
 # Paths — support both .keras (TF 2.15+) and legacy .h5
-_dir = os.path.dirname(__file__)
-MODEL_PATH = os.path.join(_dir, "plant_disease_cnn.keras")
-if not os.path.exists(MODEL_PATH):
-    MODEL_PATH = os.path.join(_dir, "plant_disease_cnn.h5")
-CLASS_NAMES_PATH = os.path.join(os.path.dirname(__file__), "class_names.json")
+_dir = os.path.dirname(os.path.abspath(__file__))
+CLASS_NAMES_PATH = os.path.join(_dir, "class_names.json")
 IMG_SIZE         = (224, 224)
 
 # Confidence threshold — below this triggers "Unrecognized Input" alert (Chapter 4.5)
 CONFIDENCE_THRESHOLD = 0.60
+
+
+def _get_model_path():
+    """Return the model path, preferring .keras over .h5."""
+    base = os.path.dirname(os.path.abspath(__file__))
+    for name in ("plant_disease_cnn.keras", "plant_disease_cnn.h5"):
+        path = os.path.join(base, name)
+        if os.path.exists(path):
+            return path
+    return os.path.join(base, "plant_disease_cnn.keras")  # fallback for error msg
 
 
 class PlantDiseasePredictor:
@@ -34,6 +41,7 @@ class PlantDiseasePredictor:
 
     def _load(self):
         """Load model and class names from disk."""
+        MODEL_PATH = _get_model_path()
         if not os.path.exists(MODEL_PATH):
             raise FileNotFoundError(
                 f"Trained model not found at '{MODEL_PATH}'.\n"
