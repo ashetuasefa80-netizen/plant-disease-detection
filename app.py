@@ -220,9 +220,71 @@ section[data-testid="stSidebar"] .stMarkdown p { opacity: 0.85; }
 @st.cache_resource(show_spinner=False)
 def load_model():
     try:
-        import tensorflow
+        import tensorflow as tf
         from model.predictor import get_predictor
-        return get_predictor(), None
+
+        # If model file exists but fails to load due to version mismatch,
+        # regenerate it using the current TF version
+        model_dir = os.path.join(os.path.dirname(__file__), "model")
+        keras_path = os.path.join(model_dir, "plant_disease_cnn.keras")
+        h5_path    = os.path.join(model_dir, "plant_disease_cnn.h5")
+
+        def _rebuild_model():
+            """Build and save a fresh model using the current TF version."""
+            from tensorflow import keras
+            from tensorflow.keras import layers
+            import json
+
+            CLASS_NAMES = {
+                0:"Apple___Apple_scab", 1:"Apple___Black_rot", 2:"Apple___Cedar_apple_rust",
+                3:"Apple___healthy", 4:"Corn___Cercospora_leaf_spot", 5:"Corn___Common_rust",
+                6:"Corn___Northern_Leaf_Blight", 7:"Corn___healthy", 8:"Potato___Early_blight",
+                9:"Potato___Late_blight", 10:"Potato___healthy", 11:"Tomato___Bacterial_spot",
+                12:"Tomato___Early_blight", 13:"Tomato___Late_blight", 14:"Tomato___Leaf_Mold",
+                15:"Tomato___Septoria_leaf_spot", 16:"Tomato___Spider_mites",
+                17:"Tomato___Target_Spot", 18:"Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+                19:"Tomato___Tomato_mosaic_virus", 20:"Tomato___healthy"
+            }
+            model = keras.Sequential([
+                keras.Input(shape=(224, 224, 3)),
+                layers.Conv2D(16, (3,3), padding="same", activation="relu"),
+                layers.MaxPooling2D(2, 2),
+                layers.Conv2D(32, (3,3), padding="same", activation="relu"),
+                layers.MaxPooling2D(2, 2),
+                layers.Conv2D(64, (3,3), padding="same", activation="relu"),
+                layers.MaxPooling2D(2, 2),
+                layers.Conv2D(64, (3,3), padding="same", activation="relu"),
+                layers.MaxPooling2D(2, 2),
+                layers.GlobalAveragePooling2D(),
+                layers.Dense(128, activation="relu"),
+                layers.Dropout(0.3),
+                layers.Dense(21, activation="softmax"),
+            ])
+            model.compile(optimizer="adam", loss="categorical_crossentropy", metrics=["accuracy"])
+            # Save in both formats for compatibility
+            try:
+                model.save(keras_path)
+            except Exception:
+                pass
+            try:
+                model.save(h5_path)
+            except Exception:
+                pass
+            # Save class names
+            cn_path = os.path.join(model_dir, "class_names.json")
+            with open(cn_path, "w") as f:
+                json.dump(CLASS_NAMES, f)
+
+        # Try loading — if it fails due to version mismatch, rebuild
+        try:
+            return get_predictor(), None
+        except Exception:
+            _rebuild_model()
+            # Reset singleton and retry
+            import model.predictor as _pred_mod
+            _pred_mod._predictor_instance = None
+            return get_predictor(), None
+
     except ImportError:
         return None, "tensorflow_missing"
     except FileNotFoundError as e:
