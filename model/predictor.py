@@ -9,8 +9,11 @@ import numpy as np
 from PIL import Image
 import tensorflow as tf
 
-# Paths
-MODEL_PATH       = os.path.join(os.path.dirname(__file__), "plant_disease_cnn.h5")
+# Paths — support both .keras (TF 2.15+) and legacy .h5
+_dir = os.path.dirname(__file__)
+MODEL_PATH = os.path.join(_dir, "plant_disease_cnn.keras")
+if not os.path.exists(MODEL_PATH):
+    MODEL_PATH = os.path.join(_dir, "plant_disease_cnn.h5")
 CLASS_NAMES_PATH = os.path.join(os.path.dirname(__file__), "class_names.json")
 IMG_SIZE         = (224, 224)
 
